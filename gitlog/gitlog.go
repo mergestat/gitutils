@@ -55,6 +55,7 @@ type execOptions struct {
 	IncludeStats bool
 	FileFilter   string
 	Order        CommitOrder
+	FirstParent  bool
 }
 
 type CommitOrder string
@@ -89,6 +90,12 @@ func WithFileFilter(fileFilter string) Option {
 func WithCommitOrder(order CommitOrder) Option {
 	return func(o *execOptions) {
 		o.Order = order
+	}
+}
+
+func WithFirstParent(firstParent bool) Option {
+	return func(o *execOptions) {
+		o.FirstParent = firstParent
 	}
 }
 
@@ -250,6 +257,10 @@ func Exec(ctx context.Context, repoPath string, options ...Option) (*commitItera
 	args = append(args, "--numstat", "--format=raw", "--no-decorate", "-w")
 	if o.NoMerges {
 		args = append(args, "--no-merges")
+	}
+
+	if o.FirstParent {
+		args = append(args, "--first-parent")
 	}
 
 	if o.Order != "" {

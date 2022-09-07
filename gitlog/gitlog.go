@@ -56,6 +56,7 @@ type execOptions struct {
 	FileFilter   string
 	Order        CommitOrder
 	FirstParent  bool
+	M            bool
 }
 
 type CommitOrder string
@@ -96,6 +97,12 @@ func WithCommitOrder(order CommitOrder) Option {
 func WithFirstParent(firstParent bool) Option {
 	return func(o *execOptions) {
 		o.FirstParent = firstParent
+	}
+}
+
+func WithM(m bool) Option {
+	return func(o *execOptions) {
+		o.M = m
 	}
 }
 
@@ -265,6 +272,10 @@ func Exec(ctx context.Context, repoPath string, options ...Option) (*commitItera
 
 	if o.Order != "" {
 		args = append(args, string(o.Order))
+	}
+
+	if o.M {
+		args = append(args, "-m")
 	}
 
 	if o.FileFilter != "" {

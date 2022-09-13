@@ -17,9 +17,9 @@ type Option func(o *execOptions)
 
 // WithRecurse corresponds to the -r flag
 // https://www.git-scm.com/docs/git-ls-tree#Documentation/git-ls-tree.txt--r
-func WithRecurse(files string) Option {
+func WithRecurse(recurse bool) Option {
 	return func(o *execOptions) {
-		o.Recurse = true
+		o.Recurse = recurse
 	}
 }
 

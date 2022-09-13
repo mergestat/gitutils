@@ -15,7 +15,7 @@ type execOptions struct {
 
 type Option func(o *execOptions)
 
-// WitFiles corresponds to the first (and only) non-flag argument to git ls-files.
+// WithFiles corresponds to the first (and only) non-flag argument to git ls-files.
 // It's a pattern for filtering the files to list. See <file> here: https://git-scm.com/docs/git-ls-files
 func WithFiles(files string) Option {
 	return func(o *execOptions) {

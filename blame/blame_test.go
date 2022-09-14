@@ -1,20 +1,45 @@
-package main
+package blame_test
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
+	"testing"
 
 	"github.com/mergestat/gitutils/blame"
 )
 
-func main() {
-	args := os.Args[1:]
-	res, err := blame.Exec(context.Background(), args[0], args[1])
+var (
+	repoPath string = "../" // blame can run from a subdir of a repo
+	filePath string = "README.md"
+)
+
+func init() {
+	if r := os.Getenv("REPO_PATH"); r != "" {
+		repoPath = os.Getenv("REPO_PATH")
+	}
+	var err error
+	repoPath, err = filepath.Abs(repoPath)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if p := os.Getenv("BLAME_FILE_PATH"); p != "" {
+		filePath = p
+	}
+}
+
+func TestBlameOutput(t *testing.T) {
+	res, err := blame.Exec(context.Background(), repoPath, filePath)
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			t.Log(string(exitErr.Stderr))
+		}
+		t.Fatal(err)
 	}
 
 	var got strings.Builder
@@ -43,5 +68,27 @@ func main() {
 		got.WriteString(fmt.Sprintf("\t%s\n", blame.Line))
 	}
 
-	fmt.Print(got.String())
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.CommandContext(context.Background(), gitPath, "blame", "--line-porcelain", filePath)
+	cmd.Dir = repoPath
+
+	w, err := cmd.Output()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			t.Log(string(exitErr.Stderr))
+		}
+		t.Fatal(err)
+	}
+
+	want := string(w)
+
+	if string(want) != got.String() {
+		fmt.Println(len(string(want)))
+		fmt.Println(len(got.String()))
+		t.Fatal("mismatch")
+	}
 }

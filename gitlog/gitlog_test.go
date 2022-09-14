@@ -18,7 +18,9 @@ var (
 )
 
 func init() {
-	repoPath = os.Getenv("REPO_PATH")
+	if r := os.Getenv("REPO_PATH"); r != "" {
+		repoPath = os.Getenv("REPO_PATH")
+	}
 	var err error
 	repoPath, err = filepath.Abs(repoPath)
 	if err != nil {

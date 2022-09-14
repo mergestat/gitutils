@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-// Options are options to determine what and how to blame
-type Options struct {
-	Directory string
-	SHA       string
-	Lines     []int
-}
-
-// Blame represents the "blame" of a particular line or range of lines
+// Blame represents the blame of a particular line
 type Blame struct {
-	SHA       string
-	Author    Event
-	Committer Event
-	Range     [2]int
+	SHA            string
+	OriginalLineNo int
+	FinalLineNo    int
+	LinesInGroup   int
+	Author         *Event
+	Committer      *Event
+	Line           string
+	Summary        string
+	Boundary       bool
+	Previous       string // TODO(patrickdevivo) split the SHA and filename out
+	Filename       string
 }
 
 // Event represents the who and when of a commit event
@@ -42,27 +42,11 @@ func (event *Event) String() string {
 }
 
 // Result is a mapping of line numbers to blames for a given file
-type Result map[int]Blame
+type Result []*Blame
 
-func (options *Options) argsFromOptions(filePath string) []string {
-	args := []string{"blame"}
-	if options.SHA != "" {
-		args = append(args, options.SHA)
-	}
-
-	for _, line := range options.Lines {
-		args = append(args, fmt.Sprintf("-L %d,%d", line, line))
-	}
-
-	args = append(args, "--porcelain", "--incremental")
-
-	args = append(args, filePath)
-	return args
-}
-
-func parsePorcelain(reader io.Reader) (Result, error) {
+func parseLinePorcelain(reader io.Reader) (Result, error) {
 	scanner := bufio.NewScanner(reader)
-	res := make(Result)
+	res := make(Result, 0)
 
 	const (
 		author     = "author "
@@ -74,25 +58,30 @@ func parsePorcelain(reader io.Reader) (Result, error) {
 		committerMail = "committer-mail "
 		committerTime = "committer-time "
 		committerTZ   = "committer-tz "
+
+		summary    = "summary "
+		boundary   = "boundary"
+		previous   = "previous "
+		filename   = "filename "
+		linePrefix = "\t"
 	)
 
-	seenCommits := make(map[string]Blame)
-	var currentCommit Blame
+	var currentBlame *Blame
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {
 		case strings.HasPrefix(line, author):
-			currentCommit.Author.Name = strings.TrimPrefix(line, author)
+			currentBlame.Author.Name = strings.TrimPrefix(line, author)
 		case strings.HasPrefix(line, authorMail):
 			s := strings.TrimPrefix(line, authorMail)
-			currentCommit.Author.Email = strings.Trim(s, "<>")
+			currentBlame.Author.Email = strings.Trim(s, "<>")
 		case strings.HasPrefix(line, authorTime):
 			timeString := strings.TrimPrefix(line, authorTime)
 			i, err := strconv.ParseInt(timeString, 10, 64)
 			if err != nil {
 				return nil, err
 			}
-			currentCommit.Author.When = time.Unix(i, 0)
+			currentBlame.Author.When = time.Unix(i, 0)
 		case strings.HasPrefix(line, authorTZ):
 			tzString := strings.TrimPrefix(line, authorTZ)
 			parsed, err := time.Parse("-0700", tzString)
@@ -100,19 +89,19 @@ func parsePorcelain(reader io.Reader) (Result, error) {
 				return nil, err
 			}
 			loc := parsed.Location()
-			currentCommit.Author.When = currentCommit.Author.When.In(loc)
+			currentBlame.Author.When = currentBlame.Author.When.In(loc)
 		case strings.HasPrefix(line, committer):
-			currentCommit.Committer.Name = strings.TrimPrefix(line, committer)
+			currentBlame.Committer.Name = strings.TrimPrefix(line, committer)
 		case strings.HasPrefix(line, committerMail):
-			s := strings.TrimPrefix(line, committer)
-			currentCommit.Committer.Email = strings.Trim(s, "<>")
+			s := strings.TrimPrefix(line, committerMail)
+			currentBlame.Committer.Email = strings.Trim(s, "<>")
 		case strings.HasPrefix(line, committerTime):
 			timeString := strings.TrimPrefix(line, committerTime)
 			i, err := strconv.ParseInt(timeString, 10, 64)
 			if err != nil {
 				return nil, err
 			}
-			currentCommit.Committer.When = time.Unix(i, 0)
+			currentBlame.Committer.When = time.Unix(i, 0)
 		case strings.HasPrefix(line, committerTZ):
 			tzString := strings.TrimPrefix(line, committerTZ)
 			parsed, err := time.Parse("-0700", tzString)
@@ -120,61 +109,90 @@ func parsePorcelain(reader io.Reader) (Result, error) {
 				return nil, err
 			}
 			loc := parsed.Location()
-			currentCommit.Committer.When = currentCommit.Committer.When.In(loc)
+			currentBlame.Committer.When = currentBlame.Committer.When.In(loc)
+		case strings.HasPrefix(line, summary):
+			currentBlame.Summary = strings.TrimPrefix(line, summary)
+		case strings.HasPrefix(line, boundary):
+			currentBlame.Boundary = true
+		case strings.HasPrefix(line, previous):
+			currentBlame.Previous = strings.TrimPrefix(line, previous)
+		case strings.HasPrefix(line, filename):
+			currentBlame.Filename = strings.TrimPrefix(line, filename)
+		case strings.HasPrefix(line, linePrefix):
+			currentBlame.Line = strings.TrimPrefix(line, linePrefix)
 		case len(strings.Split(line, " ")[0]) == 40: // if the first string sep by a space is 40 chars long, it's probably the commit header
-			split := strings.Split(line, " ")
-			sha := split[0]
-
-			// if we haven't seen this commit before, create an entry in the seen commits map that will get filled out in subsequent lines
-			if _, ok := seenCommits[sha]; !ok {
-				seenCommits[sha] = Blame{SHA: sha}
+			// there's an existing currentBlame, add it to the response
+			if currentBlame != nil {
+				res = append(res, currentBlame)
 			}
 
-			// update the current commit to be this new one we've just encountered
-			currentCommit.SHA = sha
+			// reset the currentBlame to an empty struct, to be filled
+			currentBlame = &Blame{
+				Author:    &Event{},
+				Committer: &Event{},
+			}
 
-			// pull out the line information
-			line := split[2]
-			l, err := strconv.ParseInt(line, 10, 64) // the starting line of the range
-			if err != nil {
+			split := strings.Split(line, " ")
+			sha := split[0]
+			var err error
+
+			if currentBlame.OriginalLineNo, err = strconv.Atoi(split[1]); err != nil {
 				return nil, err
 			}
 
-			var c int64
+			if currentBlame.FinalLineNo, err = strconv.Atoi(split[2]); err != nil {
+				return nil, err
+			}
+
 			if len(split) > 3 {
-				c, err = strconv.ParseInt(split[3], 10, 64) // the number of lines in the range
-				if err != nil {
+				if currentBlame.LinesInGroup, err = strconv.Atoi(split[3]); err != nil {
 					return nil, err
 				}
 			}
-			for i := l; i < l+c; i++ {
-				res[int(i)] = Blame{SHA: sha}
-			}
+
+			// set the SHA since we have it now
+			currentBlame.SHA = sha
 		}
-		// after every line, make sure the current commit in the seen commits map is updated
-		seenCommits[currentCommit.SHA] = currentCommit
-	}
-	for line, blame := range res {
-		res[line] = seenCommits[blame.SHA]
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 
+	res = append(res, currentBlame)
+
 	return res, nil
 }
 
+type Option func(o *execOptions)
+
+type execOptions struct {
+	Revision string
+}
+
+func WithRevision(revision string) Option {
+	return func(o *execOptions) {
+		o.Revision = revision
+	}
+}
+
 // Exec uses git to lookup the blame of a file, given the supplied options
-func Exec(ctx context.Context, filePath string, options *Options) (Result, error) {
+func Exec(ctx context.Context, repoPath, filePath string, options ...Option) (Result, error) {
+	o := &execOptions{}
+	for _, option := range options {
+		option(o)
+	}
+
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return nil, fmt.Errorf("could not find git: %w", err)
 	}
 
-	args := options.argsFromOptions(filePath)
-
+	args := []string{"blame", "--line-porcelain", filePath}
+	if o.Revision != "" {
+		args = append(args, o.Revision)
+	}
 	cmd := exec.CommandContext(ctx, gitPath, args...)
-	cmd.Dir = options.Directory
+	cmd.Dir = repoPath
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -185,7 +203,7 @@ func Exec(ctx context.Context, filePath string, options *Options) (Result, error
 		return nil, err
 	}
 
-	res, err := parsePorcelain(stdout)
+	res, err := parseLinePorcelain(stdout)
 	if err != nil {
 		return nil, err
 	}

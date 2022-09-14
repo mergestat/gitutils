@@ -38,12 +38,10 @@ func main() {
 		if o.Type != "blob" {
 			continue
 		}
-		res, err := blame.Exec(context.Background(), o.Path, &blame.Options{
-			Directory: args[0],
-		})
+		res, err := blame.Exec(context.Background(), args[0], o.Path)
 		if err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
-				fmt.Println("Error", err, o.Path, exitErr.Stderr)
+				fmt.Println("Error", err, o.Path, string(exitErr.Stderr))
 			} else {
 				fmt.Println("Error", err)
 			}

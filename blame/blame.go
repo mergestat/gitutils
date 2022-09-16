@@ -158,7 +158,9 @@ func parseLinePorcelain(reader io.Reader) (Result, error) {
 		return nil, err
 	}
 
-	res = append(res, currentBlame)
+	if currentBlame != nil {
+		res = append(res, currentBlame)
+	}
 
 	return res, nil
 }

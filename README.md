@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/mergestat/gitutils.svg)](https://pkg.go.dev/github.com/mergestat/gitutils)
+
 # gitutils
 
 This is a Golang library for programmatically working with the `git` command (via the `os/exec` package).

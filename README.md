@@ -1,5 +1,6 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/mergestat/gitutils.svg)](https://pkg.go.dev/github.com/mergestat/gitutils)
 [![CI](https://github.com/mergestat/gitutils/actions/workflows/ci.yaml/badge.svg)](https://github.com/mergestat/gitutils/actions/workflows/ci.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mergestat/gitutils)](https://goreportcard.com/report/github.com/mergestat/gitutils)
 
 # gitutils
 

@@ -11,6 +11,7 @@ type execOptions struct {
 	NoCheckout    bool
 	Bare          bool
 	Mirror        bool
+	Branch        string
 }
 
 type Option func(o *execOptions)
@@ -43,6 +44,13 @@ func WithMirror(mirror bool) Option {
 	}
 }
 
+// WithBranch sets the --branch <name> flag
+func WithBranch(branch string) Option {
+	return func(o *execOptions) {
+		o.Branch = branch
+	}
+}
+
 // Exec runs `git clone` using the os/exec standard library package.
 func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 	o := &execOptions{}
@@ -71,6 +79,10 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 
 	if o.Mirror {
 		args = append(args, "--mirror")
+	}
+
+	if len(o.Branch) > 0 {
+		args = append(args, "--branch", o.Branch)
 	}
 
 	cmd := exec.CommandContext(ctx, gitPath, args...)

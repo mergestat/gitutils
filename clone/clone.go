@@ -44,7 +44,7 @@ func WithMirror(mirror bool) Option {
 	}
 }
 
-// WithBrach sets the --branch <name> flag
+// WithBranch sets the --branch <name> flag
 func WithBranch(branch string) Option {
 	return func(o *execOptions) {
 		o.Branch = branch

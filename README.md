@@ -1,6 +1,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/mergestat/gitutils.svg)](https://pkg.go.dev/github.com/mergestat/gitutils)
 [![CI](https://github.com/mergestat/gitutils/actions/workflows/ci.yaml/badge.svg)](https://github.com/mergestat/gitutils/actions/workflows/ci.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mergestat/gitutils)](https://goreportcard.com/report/github.com/mergestat/gitutils)
+[![codecov](https://codecov.io/gh/mergestat/gitutils/branch/main/graph/badge.svg?token=7KVW1U2LH7)](https://codecov.io/gh/mergestat/gitutils)
 
 # gitutils
 

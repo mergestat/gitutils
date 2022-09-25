@@ -30,7 +30,7 @@ func init() {
 }
 
 func TestBasicOK(t *testing.T) {
-	iter, err := lstree.Exec(context.Background(), repoPath, "HEAD")
+	iter, err := lstree.Exec(context.Background(), repoPath, "HEAD", lstree.WithRecurse(true))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestBasicOK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.CommandContext(context.Background(), gitPath, "ls-tree", "HEAD")
+	cmd := exec.CommandContext(context.Background(), gitPath, "ls-tree", "HEAD", "-r")
 	cmd.Dir = repoPath
 
 	w, err := cmd.Output()

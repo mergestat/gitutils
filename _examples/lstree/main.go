@@ -13,7 +13,7 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	iter, err := lstree.Exec(context.Background(), args[0], args[1])
+	iter, err := lstree.Exec(context.Background(), args[0], args[1], lstree.WithRecurse(true))
 	if err != nil {
 		log.Fatal(err)
 	}

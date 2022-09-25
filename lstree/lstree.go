@@ -1,3 +1,4 @@
+// Package lstree shells out to git ls-tree https://git-scm.com/docs/git-ls-tree
 package lstree
 
 import (
@@ -7,6 +8,16 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+)
+
+type Mode string
+
+const (
+	NormalFile     Mode = "100644"
+	ExecutableFile Mode = "100755"
+	SymbolicLink   Mode = "120000"
+	Tree           Mode = "040000"
+	Submodule      Mode = "160000"
 )
 
 type execOptions struct {
@@ -28,11 +39,28 @@ type iterator struct {
 }
 
 type Object struct {
-	// TODO(patrickdevivo) mode should be an int...or?
 	Mode string
 	Type string
 	Hash string
 	Path string
+}
+
+// modeFromString returns a Mode from a string representation of a git object mode.
+func modeFromString(s string) Mode {
+	switch s {
+	case "100644":
+		return NormalFile
+	case "100755":
+		return ExecutableFile
+	case "120000":
+		return SymbolicLink
+	case "040000":
+		return Tree
+	case "160000":
+		return Submodule
+	default:
+		return ""
+	}
 }
 
 // objectFromOutputLine parses a single line in the default git ls-tree output format
@@ -41,7 +69,7 @@ func objectFromOutputLine(line string) *Object {
 	s := strings.SplitN(line, " ", 3)
 	s2 := strings.Split(s[2], "\t")
 	return &Object{
-		Mode: s[0],
+		Mode: string(modeFromString(s[0])),
 		Type: s[1],
 		Hash: s2[0],
 		Path: s2[1],

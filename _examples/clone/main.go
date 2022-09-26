@@ -10,7 +10,8 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	err := clone.Exec(context.Background(), args[0], args[1], clone.WithBranch("default-syncs"))
+	serverOpt := []string{"asdasd", "adasdad"}
+	err := clone.Exec(context.Background(), args[0], args[1], clone.WithServerOption(serverOpt))
 	if err != nil {
 		log.Fatal(err)
 	}

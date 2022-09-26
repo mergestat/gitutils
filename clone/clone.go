@@ -7,21 +7,42 @@ import (
 )
 
 type execOptions struct {
-	RejectShallow   bool
-	NoCheckout      bool
-	Bare            bool
-	Mirror          bool
-	Local           bool
-	NoHardLinks     bool
-	Shared          bool
-	Dissociate      bool
-	Quiet           bool
-	Verbose         bool
-	Progress        bool
-	Branch          string
-	Reference       string
-	ReferenceIfAble string
-	ServerOption    []string
+	RejectShallow        bool
+	NoRejectShallow      bool
+	NoCheckout           bool
+	Bare                 bool
+	Mirror               bool
+	Local                bool
+	NoHardLinks          bool
+	Shared               bool
+	Dissociate           bool
+	Quiet                bool
+	Verbose              bool
+	Progress             bool
+	Sparse               bool
+	AlsoFilterSubModules bool
+	NoSingleBranch       bool
+	SingleBranch         bool
+	NoTags               bool
+	ShallowSubmodules    bool
+	NoShallowSubmodules  bool
+	RemoteSubmodules     bool
+	NoRemoteSubmodules   bool
+	UploadPack           string
+	Origin               string
+	Branch               string
+	Reference            string
+	ReferenceIfAble      string
+	Filter               string
+	Template             string
+	ShallowSince         string
+	RecursiveSubmodules  string
+	SeparateGirDir       string
+	ShallowExclude       []string
+	ServerOption         []string
+	Depth                int
+	Jobs                 int
+	Config               map[string]string
 }
 
 type Option func(o *execOptions)
@@ -30,6 +51,13 @@ type Option func(o *execOptions)
 func WithRejectShallow(rejectShallow bool) Option {
 	return func(o *execOptions) {
 		o.RejectShallow = rejectShallow
+	}
+}
+
+// WithNoRejectShallow sets the --no-reject-shallow flag
+func WithNoRejectShallow(noRejectShallow bool) Option {
+	return func(o *execOptions) {
+		o.NoRejectShallow = noRejectShallow
 	}
 }
 
@@ -82,14 +110,14 @@ func WithShared(shared bool) Option {
 	}
 }
 
-// WithReference sets the --reference flag
+// WithReference sets the --reference <repository> flag
 func WithReference(reference string) Option {
 	return func(o *execOptions) {
 		o.Reference = reference
 	}
 }
 
-// WithReferenceIfAble sets the --reference-if-able flag
+// WithReferenceIfAble sets the --reference-if-able <repository> flag
 func WithReferenceIfAble(referenceIfAble string) Option {
 	return func(o *execOptions) {
 		o.ReferenceIfAble = referenceIfAble
@@ -124,7 +152,147 @@ func WithProgress(progress bool) Option {
 	}
 }
 
-// WithServerOption sets the --server-option flag
+// WithSparse sets the --sparse flag
+func WithSparse(sparse bool) Option {
+	return func(o *execOptions) {
+		o.Sparse = sparse
+	}
+}
+
+// Withfilter sets the --filter <filter> flag
+func WithFilter(filter string) Option {
+	return func(o *execOptions) {
+		o.Filter = filter
+	}
+}
+
+// WithOrigin sets the --origin <name> flag
+func WithOrigin(origin string) Option {
+	return func(o *execOptions) {
+		o.Origin = origin
+	}
+}
+
+// WithUploadPack sets the --upload-pack <dir> flag
+func WithUploadPack(uploadPack string) Option {
+	return func(o *execOptions) {
+		o.UploadPack = uploadPack
+	}
+}
+
+// WithTemplate sets the --template <template-dir> flag
+func WithTemplate(template string) Option {
+	return func(o *execOptions) {
+		o.Template = template
+	}
+}
+
+// WithDepth sets the --depth <depth> flag
+func WithDepth(depth int) Option {
+	return func(o *execOptions) {
+		o.Depth = depth
+	}
+}
+
+// WithAlsoFilterSubmodules sets the --also-filter-submodules flag .For usage Refs :https://git-scm.com/docs/git-clone
+func WithAlsoFilterSubmodules(alsoFilterSubModules bool) Option {
+	return func(o *execOptions) {
+		o.AlsoFilterSubModules = alsoFilterSubModules
+	}
+}
+
+// WithShallowSince sets the --shallow-since <date> flag
+func WithShallowSince(shallowSince string) Option {
+	return func(o *execOptions) {
+		o.ShallowSince = shallowSince
+	}
+}
+
+// WithNoSingleBranch sets the --no-single-branch flag
+func WithNoSingleBranch(noSingleBranch bool) Option {
+	return func(o *execOptions) {
+		o.NoSingleBranch = noSingleBranch
+	}
+}
+
+// WithSingleBranch sets the --single-branch flag
+func WithSingleBranch(singleBranch bool) Option {
+	return func(o *execOptions) {
+		o.SingleBranch = singleBranch
+	}
+}
+
+// WithNoTags sets the --no-tags flag
+func WithNoTags(noTags bool) Option {
+	return func(o *execOptions) {
+		o.NoTags = noTags
+	}
+}
+
+// WithRecurseSubmodules sets the --recurse-modules <pathspec> flag
+func WithRecurseSubmodules(recurseSubmodules string) Option {
+	return func(o *execOptions) {
+		o.RecursiveSubmodules = recurseSubmodules
+	}
+}
+
+// WithNoShallowSubmodules sets the --no-shallow-submodules flag
+func WithNoShallowSubmodules(noShallowSubmodules bool) Option {
+	return func(o *execOptions) {
+		o.NoShallowSubmodules = noShallowSubmodules
+	}
+}
+
+// WithShallowSubmodules sets the --shallow-submodules flag
+func WithShallowSubmodules(shallowSubmodules bool) Option {
+	return func(o *execOptions) {
+		o.ShallowSubmodules = shallowSubmodules
+	}
+}
+
+// WithRemoteSubmodules sets the --remote-submodules flag
+func WithRemoteSubmodules(remoteSubmodules bool) Option {
+	return func(o *execOptions) {
+		o.RemoteSubmodules = remoteSubmodules
+	}
+}
+
+// WithNoRemoteSubmodules sets the --no-remote-submodules flag
+func WithNoRemoteSubmodules(noRemoteSubmodules bool) Option {
+	return func(o *execOptions) {
+		o.NoRemoteSubmodules = noRemoteSubmodules
+	}
+}
+
+// WithSeparateGitDir sets the --separate-git-dir <dir> flag
+func WithSeparateGitDir(separateGitDir string) Option {
+	return func(o *execOptions) {
+		o.SeparateGirDir = separateGitDir
+	}
+}
+
+// WithConfig sets the --config <key>=<value> flag
+func WithConfig(config map[string]string) Option {
+	return func(o *execOptions) {
+		o.Config = config
+	}
+}
+
+// WithJobs sets the --jobs <jobs> flag
+func WithJobs(jobs int) Option {
+	return func(o *execOptions) {
+		o.Jobs = jobs
+	}
+}
+
+// WithShallowExclude sets the --shallow-exclude <revision> flag
+func WithShallowExclude(shallowExclude []string) Option {
+	return func(o *execOptions) {
+		o.ShallowExclude = shallowExclude
+	}
+}
+
+// WithServerOption sets the --server-option <option> flag
 func WithServerOption(ServerOption []string) Option {
 	return func(o *execOptions) {
 		o.ServerOption = ServerOption
@@ -147,6 +315,10 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 
 	if o.RejectShallow {
 		args = append(args, "--reject-shallow")
+	}
+
+	if o.NoRejectShallow {
+		args = append(args, "--no-reject-shallow")
 	}
 
 	if o.NoCheckout {
@@ -189,10 +361,84 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 		args = append(args, "--progress")
 	}
 
+	if o.Sparse {
+		args = append(args, "--sparse")
+	}
+
+	if o.SingleBranch {
+		args = append(args, "--single-branch")
+	}
+
+	if o.NoSingleBranch {
+		args = append(args, "--no-single-branch")
+	}
+
+	if o.NoTags {
+		args = append(args, "--no-tags")
+	}
+
+	if o.ShallowSubmodules {
+		args = append(args, "--shallow-submodules")
+	}
+
+	if o.NoShallowSubmodules {
+		args = append(args, "--no-shallow-submodules")
+	}
+
+	if o.RemoteSubmodules {
+		args = append(args, "--remote-submodules")
+	}
+
+	if o.NoRemoteSubmodules {
+		args = append(args, "--no-remote-submodules")
+	}
+
+	if len(o.Filter) > 0 {
+		filterSpec := fmt.Sprintf("--filter=%s", o.Filter)
+		args = append(args, filterSpec)
+	}
+
+	if len(o.RecursiveSubmodules) > 0 {
+		path := fmt.Sprintf("--recurse-submodules=%s", o.RecursiveSubmodules)
+		args = append(args, path)
+	}
+
+	if o.AlsoFilterSubModules {
+		args = append(args, "--also-filter-submodules")
+	}
+
 	if len(o.ServerOption) > 0 {
 		for _, option := range o.ServerOption {
 			args = append(args, "--server-option", option)
 		}
+	}
+
+	if len(o.ShallowExclude) > 0 {
+		for _, option := range o.ShallowExclude {
+			arg := fmt.Sprintf("--shallow-exclude=%s", option)
+			args = append(args, arg)
+		}
+	}
+
+	if len(o.SeparateGirDir) > 0 {
+		path := fmt.Sprintf("--separate-git-dir=%s", o.SeparateGirDir)
+		args = append(args, path)
+	}
+
+	if len(o.ShallowSince) > 0 {
+		args = append(args, "--shallow-since", o.ShallowSince)
+	}
+
+	if len(o.Template) > 0 {
+		args = append(args, "--template", o.Template)
+	}
+
+	if len(o.UploadPack) > 0 {
+		args = append(args, "--upload-pack", o.UploadPack)
+	}
+
+	if len(o.Origin) > 0 {
+		args = append(args, "--origin", o.Origin)
 	}
 
 	if len(o.Reference) > 0 {
@@ -205,6 +451,30 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 
 	if len(o.Branch) > 0 {
 		args = append(args, "--branch", o.Branch)
+
+	}
+
+	if o.Depth > 0 {
+		depth := fmt.Sprintf("--depth=%d", o.Depth)
+		args = append(args, depth)
+	}
+
+	if o.Jobs > 0 {
+		jobs := fmt.Sprintf("--jobs=%d", o.Jobs)
+		args = append(args, jobs)
+	}
+
+	if len(o.Config) > 0 {
+		var key, value string
+
+		for k, v := range o.Config {
+			key = k
+			value = v
+		}
+		config := fmt.Sprintf("--config=%s=%s", key, value)
+
+		args = append(args, config)
+
 	}
 
 	cmd := exec.CommandContext(ctx, gitPath, args...)

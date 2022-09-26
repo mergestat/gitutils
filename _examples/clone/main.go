@@ -10,8 +10,8 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	serverOpt := []string{"asdasd", "adasdad"}
-	err := clone.Exec(context.Background(), args[0], args[1], clone.WithServerOption(serverOpt))
+	configTest := map[string]string{"core.eol": "true"}
+	err := clone.Exec(context.Background(), args[0], args[1], clone.WithConfig(configTest))
 	if err != nil {
 		log.Fatal(err)
 	}

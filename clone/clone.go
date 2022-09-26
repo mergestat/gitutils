@@ -39,7 +39,7 @@ type execOptions struct {
 	RecursiveSubmodules  string
 	SeparateGirDir       string
 	ShallowExclude       []string
-	ServerOption         []string
+	ServerOptions        []string
 	Depth                int
 	Jobs                 int
 	Config               map[string]string
@@ -293,9 +293,9 @@ func WithShallowExclude(shallowExclude []string) Option {
 }
 
 // WithServerOption sets the --server-option <option> flag
-func WithServerOption(ServerOption []string) Option {
+func WithServerOption(ServerOptions []string) Option {
 	return func(o *execOptions) {
-		o.ServerOption = ServerOption
+		o.ServerOptions = ServerOptions
 	}
 }
 
@@ -407,8 +407,8 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 		args = append(args, "--also-filter-submodules")
 	}
 
-	if len(o.ServerOption) > 0 {
-		for _, option := range o.ServerOption {
+	if len(o.ServerOptions) > 0 {
+		for _, option := range o.ServerOptions {
 			args = append(args, "--server-option", option)
 		}
 	}

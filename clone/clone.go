@@ -37,12 +37,17 @@ type execOptions struct {
 	Template             string
 	ShallowSince         string
 	RecursiveSubmodules  string
-	SeparateGirDir       string
+	SeparateGitDir       string
 	ShallowExclude       []string
 	ServerOptions        []string
 	Depth                int
 	Jobs                 int
-	Config               map[string]string
+	Config               []ConfigKV
+}
+
+type ConfigKV struct {
+	Key   string
+	Value string
 }
 
 type Option func(o *execOptions)
@@ -267,12 +272,12 @@ func WithNoRemoteSubmodules(noRemoteSubmodules bool) Option {
 // WithSeparateGitDir sets the --separate-git-dir <dir> flag
 func WithSeparateGitDir(separateGitDir string) Option {
 	return func(o *execOptions) {
-		o.SeparateGirDir = separateGitDir
+		o.SeparateGitDir = separateGitDir
 	}
 }
 
-// WithConfig sets the --config <key>=<value> flag
-func WithConfig(config map[string]string) Option {
+// WithConfig sets the --config <key>=<value> flag for every key/value pair
+func WithConfig(config []ConfigKV) Option {
 	return func(o *execOptions) {
 		o.Config = config
 	}
@@ -292,26 +297,16 @@ func WithShallowExclude(shallowExclude []string) Option {
 	}
 }
 
-// WithServerOption sets the --server-option <option> flag
-func WithServerOption(ServerOptions []string) Option {
+// WithServerOptions sets the --server-option <option> flag
+func WithServerOptions(ServerOptions []string) Option {
 	return func(o *execOptions) {
 		o.ServerOptions = ServerOptions
 	}
 }
 
-// Exec runs `git clone` using the os/exec standard library package.
-func Exec(ctx context.Context, repo, dir string, options ...Option) error {
-	o := &execOptions{}
-	for _, option := range options {
-		option(o)
-	}
-
-	gitPath, err := exec.LookPath("git")
-	if err != nil {
-		return fmt.Errorf("could not find git: %w", err)
-	}
-
-	args := []string{"clone", repo, dir}
+// flagArgsFromOptions returns a slice of flags from the given options struct
+func flagArgsFromOptions(o *execOptions) []string {
+	var args []string
 
 	if o.RejectShallow {
 		args = append(args, "--reject-shallow")
@@ -394,13 +389,11 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 	}
 
 	if len(o.Filter) > 0 {
-		filterSpec := fmt.Sprintf("--filter=%s", o.Filter)
-		args = append(args, filterSpec)
+		args = append(args, fmt.Sprintf("--filter=%s", o.Filter))
 	}
 
 	if len(o.RecursiveSubmodules) > 0 {
-		path := fmt.Sprintf("--recurse-submodules=%s", o.RecursiveSubmodules)
-		args = append(args, path)
+		args = append(args, fmt.Sprintf("--recurse-submodules=%s", o.RecursiveSubmodules))
 	}
 
 	if o.AlsoFilterSubModules {
@@ -415,14 +408,12 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 
 	if len(o.ShallowExclude) > 0 {
 		for _, option := range o.ShallowExclude {
-			arg := fmt.Sprintf("--shallow-exclude=%s", option)
-			args = append(args, arg)
+			args = append(args, fmt.Sprintf("--shallow-exclude=%s", option))
 		}
 	}
 
-	if len(o.SeparateGirDir) > 0 {
-		path := fmt.Sprintf("--separate-git-dir=%s", o.SeparateGirDir)
-		args = append(args, path)
+	if len(o.SeparateGitDir) > 0 {
+		args = append(args, fmt.Sprintf("--separate-git-dir=%s", o.SeparateGitDir))
 	}
 
 	if len(o.ShallowSince) > 0 {
@@ -455,27 +446,36 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 	}
 
 	if o.Depth > 0 {
-		depth := fmt.Sprintf("--depth=%d", o.Depth)
-		args = append(args, depth)
+		args = append(args, fmt.Sprintf("--depth=%d", o.Depth))
 	}
 
 	if o.Jobs > 0 {
-		jobs := fmt.Sprintf("--jobs=%d", o.Jobs)
-		args = append(args, jobs)
+		args = append(args, fmt.Sprintf("--jobs=%d", o.Jobs))
 	}
 
 	if len(o.Config) > 0 {
-		var key, value string
-
-		for k, v := range o.Config {
-			key = k
-			value = v
+		for _, pair := range o.Config {
+			args = append(args, fmt.Sprintf("--config=%s=%s", pair.Key, pair.Value))
 		}
-		config := fmt.Sprintf("--config=%s=%s", key, value)
-
-		args = append(args, config)
-
 	}
+
+	return args
+}
+
+// Exec runs `git clone` using the os/exec standard library package.
+func Exec(ctx context.Context, repo, dir string, options ...Option) error {
+	o := &execOptions{}
+	for _, option := range options {
+		option(o)
+	}
+
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		return fmt.Errorf("could not find git: %w", err)
+	}
+
+	args := []string{"clone", repo, dir}
+	args = append(args, flagArgsFromOptions(o)...)
 
 	cmd := exec.CommandContext(ctx, gitPath, args...)
 

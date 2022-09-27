@@ -47,7 +47,7 @@ func TestSingleArgsOK(t *testing.T) {
 		{options: []Option{WithBranch("some-string")}, flags: []string{"--branch", "some-string"}},
 		{options: []Option{WithDepth(5)}, flags: []string{"--depth=5"}},
 		{options: []Option{WithJobs(5)}, flags: []string{"--jobs=5"}},
-		{options: []Option{WithConfig(map[string]string{"a": "b", "c": "d"})}, flags: []string{"--config=a=b", "--config=c=d"}},
+		{options: []Option{WithConfig([]ConfigKV{{Key: "a", Value: "b"}, {Key: "c", Value: "d"}})}, flags: []string{"--config=a=b", "--config=c=d"}},
 	}
 
 	for _, tc := range tests {

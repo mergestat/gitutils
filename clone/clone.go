@@ -42,7 +42,12 @@ type execOptions struct {
 	ServerOptions        []string
 	Depth                int
 	Jobs                 int
-	Config               map[string]string
+	Config               []ConfigKV
+}
+
+type ConfigKV struct {
+	Key   string
+	Value string
 }
 
 type Option func(o *execOptions)
@@ -271,8 +276,8 @@ func WithSeparateGitDir(separateGitDir string) Option {
 	}
 }
 
-// WithConfig sets the --config <key>=<value> flag
-func WithConfig(config map[string]string) Option {
+// WithConfig sets the --config <key>=<value> flag for every key/value pair
+func WithConfig(config []ConfigKV) Option {
 	return func(o *execOptions) {
 		o.Config = config
 	}
@@ -449,9 +454,8 @@ func flagArgsFromOptions(o *execOptions) []string {
 	}
 
 	if len(o.Config) > 0 {
-		for k, v := range o.Config {
-			config := fmt.Sprintf("--config=%s=%s", k, v)
-			args = append(args, config)
+		for _, pair := range o.Config {
+			args = append(args, fmt.Sprintf("--config=%s=%s", pair.Key, pair.Value))
 		}
 	}
 

@@ -3,6 +3,7 @@ package clone
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 )
 
@@ -487,6 +488,14 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+
+	
+
+    if _, err := os.Stat(dir); err!=nil {
+        fmt.Println("Directory created")
+    } else {
+		return fmt.Errorf("could not clone repository:%s %w", repo,err)
+    }
 
 	return nil
 }

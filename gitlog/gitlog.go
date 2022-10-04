@@ -16,7 +16,7 @@ import (
 
 const isoDataFmtStr = "2006-01-02T15:04:05-07:00"
 
-// line prefixes for the `raw` formatted output
+// line prefixes used in the format string
 const (
 	commitHashPrefix     = "_H:"
 	treeHashPrefix       = "_T:"
@@ -50,7 +50,7 @@ func buildFormatString() string {
 	return b.String()
 }
 
-// Commit represents a parsed commit from git log
+// Commit represents a commit parsed from git log
 type Commit struct {
 	SHA                string
 	Tree               string

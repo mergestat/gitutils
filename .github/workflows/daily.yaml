@@ -1,0 +1,33 @@
+name: Test Suite
+on:
+  schedule:
+    - cron:  '0 6 * * *'
+
+jobs:
+  tests:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - https://github.com/kubernetes/kubernetes
+
+    steps:
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.1
+        id: go
+
+      - name: Check out source
+        uses: actions/checkout@v3
+        repository: ${{ matrix.version }}
+        path: repo
+
+      - name: Check out source
+        uses: actions/checkout@v3
+
+      - name: Test
+        run: make test
+        env:
+          REPO: repo/

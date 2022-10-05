@@ -1,7 +1,8 @@
-package gitlog_test
+package gitlog
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -9,8 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/mergestat/gitutils/gitlog"
 )
 
 var (
@@ -29,7 +28,7 @@ func init() {
 }
 
 func TestCount(t *testing.T) {
-	iter, err := gitlog.Exec(context.Background(), repoPath)
+	iter, err := Exec(context.Background(), repoPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +69,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestCountNoMerges(t *testing.T) {
-	iter, err := gitlog.Exec(context.Background(), repoPath, gitlog.WithNoMerges(true))
+	iter, err := Exec(context.Background(), repoPath, WithNoMerges(true))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,8 +109,8 @@ func TestCountNoMerges(t *testing.T) {
 	}
 }
 
-func TestLogOutput(t *testing.T) {
-	iter, err := gitlog.Exec(context.Background(), repoPath)
+func TestLogOutputWithStats(t *testing.T) {
+	iter, err := Exec(context.Background(), repoPath, WithStats(true))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +125,7 @@ func TestLogOutput(t *testing.T) {
 		if commit == nil {
 			break
 		}
-		got.WriteString(commit.String() + "\n")
+		got.WriteString(commit.String())
 	}
 
 	gitPath, err := exec.LookPath("git")
@@ -134,18 +133,16 @@ func TestLogOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.CommandContext(context.Background(), gitPath, "log", "--numstat", "--no-decorate", "-w", "--format=raw")
+	cmd := exec.CommandContext(context.Background(), gitPath, "log", "--numstat", "--no-decorate", "-w", fmt.Sprintf("--format=%s", buildFormatString()))
 	cmd.Dir = repoPath
 
-	w, err := cmd.Output()
+	want, err := cmd.Output()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			t.Log(string(exitErr.Stderr))
 		}
 		t.Fatal(err)
 	}
-
-	want := string(w) + "\n"
 
 	if string(want) != got.String() {
 		t.Fatal("mismatch")

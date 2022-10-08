@@ -21,7 +21,7 @@ jobs:
 
       - name: Check out source
         uses: actions/checkout@v3
-          repository: ${{ matrix.version }}
+          repository: ${{ matrix.repo }}
           path: repo
 
       - name: Check out source

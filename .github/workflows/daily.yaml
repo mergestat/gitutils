@@ -10,7 +10,11 @@ jobs:
     strategy:
       matrix:
         repo:
-          - https://github.com/kubernetes/kubernetes
+          - name: mergestat/mergestat
+          - name: kubernetes/kubernetes
+          - name: facebook/react
+          - name: torvalds/linux
+            blameFilePath: README
 
     steps:
       - name: Set up Go 1.19
@@ -21,13 +25,16 @@ jobs:
 
       - name: Check out source
         uses: actions/checkout@v3
-          repository: ${{ matrix.repo }}
-          path: repo
 
       - name: Check out source
         uses: actions/checkout@v3
+        with:
+          repository: ${{ matrix.repo.name }}
+          path: .repo
+          fetch-depth: 0
 
       - name: Test
         run: make test
         env:
-          REPO: repo/
+          REPO_PATH: ${{github.workspace}}/.repo
+          BLAME_FILE_PATH: ${{ matrix.repo.blameFilePath }}

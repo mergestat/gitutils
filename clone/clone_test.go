@@ -53,7 +53,6 @@ func TestSingleArgsOK(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(strings.Join(tc.flags, ","), func(t *testing.T) {
-
 			o := &execOptions{}
 
 			// apply the options

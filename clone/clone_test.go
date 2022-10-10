@@ -88,7 +88,7 @@ func TestInvalidPath(t *testing.T) {
 
 			ctx := context.Background()
 
-			err := Exec(ctx, "https://github.com/mergestat/gitutils", tc.path, tc.options[0])
+			err := Exec(ctx, "https://.com", tc.path, tc.options[0])
 
 			if err == nil {
 				t.Fatal(err)

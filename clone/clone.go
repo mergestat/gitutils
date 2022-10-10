@@ -485,11 +485,11 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 	}
 
 	if err := cmd.Start(); err != nil {
-		return  err
+		return err
 	}
 
 	if err := cmd.Wait(); err != nil {
-	    return  fmt.Errorf("could not clone repository:%s with error:%w", repo,err)
+		return fmt.Errorf("error cloning repository: %w", err)
 	}
 
 	return nil

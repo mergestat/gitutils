@@ -80,7 +80,7 @@ func TestInvalidPath(t *testing.T) {
 	}
 
 	tests := []test{
-		{options: []Option{WithBare(true)}, flags: []string{"--bare"}, path: "'gitutils'", spectedError: true},
+		{options: []Option{WithBare(true)}, flags: []string{"--bare"}, path: "$%!!!||||***&?¡{}¨*´+", spectedError: true},
 	}
 
 	for _, tc := range tests {

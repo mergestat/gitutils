@@ -51,7 +51,7 @@ func TestSingleArgsOK(t *testing.T) {
 		{options: []Option{WithDepth(5)}, flags: []string{"--depth=5"}, spectedError: false},
 		{options: []Option{WithJobs(5)}, flags: []string{"--jobs=5"}, spectedError: false},
 		{options: []Option{WithConfig([]ConfigKV{{Key: "a", Value: "b"}, {Key: "c", Value: "d"}})}, flags: []string{"--config=a=b", "--config=c=d"}, spectedError: false},
-		{options: []Option{WithBare(true)}, flags: []string{"--bare"}, path: "***mergestat*repo*3642228556", spectedError: true},
+		{options: []Option{WithBare(true)}, flags: []string{"--bare"}, path: "", spectedError: true},
 	}
 
 	for _, tc := range tests {

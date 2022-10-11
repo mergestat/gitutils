@@ -479,12 +479,7 @@ func Exec(ctx context.Context, repo, dir string, options ...Option) error {
 
 	cmd := exec.CommandContext(ctx, gitPath, args...)
 
-	_, err = cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	if err := cmd.Start(); err != nil {
+	if _, err := cmd.Output(); err != nil {
 		return err
 	}
 

@@ -52,7 +52,7 @@ func TestBlameOutput(t *testing.T) {
 		got.WriteString(fmt.Sprintf("author %s\n", blame.Author.Name))
 		got.WriteString(fmt.Sprintf("author-mail <%s>\n", blame.Author.Email))
 		got.WriteString(fmt.Sprintf("author-time %d\n", blame.Author.When.Unix()))
-		got.WriteString(fmt.Sprintf("author-tz %s\n", blame.Committer.When.Format("-0700")))
+		got.WriteString(fmt.Sprintf("author-tz %s\n", blame.Author.When.Format("-0700")))
 		got.WriteString(fmt.Sprintf("committer %s\n", blame.Committer.Name))
 		got.WriteString(fmt.Sprintf("committer-mail <%s>\n", blame.Committer.Email))
 		got.WriteString(fmt.Sprintf("committer-time %d\n", blame.Committer.When.Unix()))

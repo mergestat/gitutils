@@ -1,6 +1,8 @@
 package clone
 
 import (
+	"context"
+	"os/exec"
 	"reflect"
 	"strings"
 	"testing"
@@ -65,5 +67,26 @@ func TestSingleArgsOK(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tc.flags)
 			}
 		})
+	}
+}
+
+func TestErrHandling(t *testing.T) {
+	// test that errors from the git command are returned
+	// and that the stderr output can be accessed
+	var err error
+	if err = Exec(context.Background(), "some-invalid-repo", "."); err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	var exitErr *exec.ExitError
+	var ok bool
+	if exitErr, ok = err.(*exec.ExitError); !ok {
+		t.Fatalf("expected an *exec.ExitError, got: %v", err)
+	}
+
+	contains := "fatal: repository 'some-invalid-repo' does not exist"
+	got := string(exitErr.Stderr)
+	if !strings.Contains(got, contains) {
+		t.Fatalf("expected Stderr to include: \"%s\", got: %s", contains, got)
 	}
 }

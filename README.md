@@ -7,7 +7,7 @@
 # gitutils
 
 This is a Golang library for programmatically working with the `git` command (via the `os/exec` package).
-In general, the options for working with git repositories in Go look like:
+In general, the options for working with git repositories in Go are:
 
   - [`go-git`](https://github.com/go-git/go-git) is a git implementation written in pure Go
   - [`git2go`](https://github.com/libgit2/git2go) are the Golang C-bindings to the `libgit2` project (requires CGO)

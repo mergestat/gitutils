@@ -37,4 +37,38 @@ func main() {
 	}
 }
 ```
+
+### Walking the Commit Log
+
+```golang
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/mergestat/gitutils/gitlog"
+)
+
+func main() {
+	iter, err := gitlog.Exec(context.TODO(), "/path/to/some/local/repo", gitlog.WithStats(false))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		if commit, err := iter.Next(); err != nil {
+			log.Fatal(err)
+		} else {
+			if commit == nil {
+				break
+			}
+			fmt.Print(commit)
+		}
+	}
+}
+```
+
 See more examples in the [examples directory](https://github.com/mergestat/gitutils/tree/main/_examples).

@@ -7,13 +7,13 @@
 # gitutils
 
 This is a Golang library for programmatically working with the `git` command (via the `os/exec` package).
-There are some options for working with git repositories in go:
+In general, the options for working with git repositories in Go look like:
 
   - [`go-git`](https://github.com/go-git/go-git) is a git implementation written in pure Go
   - [`git2go`](https://github.com/libgit2/git2go) are the Golang C-bindings to the `libgit2` project (requires CGO)
   - Shelling out to the `git` command (using the `os/exec` package) and parsing results
 
-This library uses the 3rd option (shelling out to `git`) and provides an abstraction layer to make using the output of various `git` subcommands easier.
+This library uses the 3rd option (shelling out to `git`) and provides an abstraction layer to simplify using the output of various `git` subcommands.
 
 ## Examples
 
@@ -37,5 +37,4 @@ func main() {
 	}
 }
 ```
-
-more examples on the way...
+See more examples in the [examples directory](https://github.com/mergestat/gitutils/tree/main/_examples).

@@ -2,7 +2,9 @@ package gitlog
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -35,12 +37,12 @@ func TestCount(t *testing.T) {
 
 	var count int
 	for {
-		commit, err := iter.Next()
+		_, err := iter.Next()
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			t.Fatal(err)
-		}
-		if commit == nil {
-			break
 		}
 		count++
 	}
@@ -76,12 +78,12 @@ func TestCountNoMerges(t *testing.T) {
 
 	var count int
 	for {
-		commit, err := iter.Next()
+		_, err := iter.Next()
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			t.Fatal(err)
-		}
-		if commit == nil {
-			break
 		}
 		count++
 	}
@@ -120,10 +122,10 @@ func TestLogOutputWithStats(t *testing.T) {
 	for {
 		commit, err := iter.Next()
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			t.Fatal(err)
-		}
-		if commit == nil {
-			break
 		}
 		got.WriteString(commit.String())
 	}

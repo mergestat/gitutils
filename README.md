@@ -45,7 +45,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -60,12 +62,12 @@ func main() {
 
 	for {
 		if commit, err := iter.Next(); err != nil {
-			log.Fatal(err)
-		} else {
-			if commit == nil {
+			if errors.Is(err, io.EOF) {
 				break
 			}
-			fmt.Print(commit)
+			log.Fatal(err)
+		} else {
+			fmt.Println(commit.SHA)
 		}
 	}
 }

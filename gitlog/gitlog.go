@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -146,6 +145,7 @@ type commitIterator struct {
 	currentCommit *Commit
 }
 
+// readUntilCompleteCommit reads from the scanner until it has a complete commit
 func (i *commitIterator) readUntilCompleteCommit() (*Commit, error) {
 	var inCommitBody bool
 	for i.scanner.Scan() {
@@ -235,20 +235,25 @@ func (i *commitIterator) readUntilCompleteCommit() (*Commit, error) {
 		}
 	}
 
-	return i.currentCommit, io.EOF
+	if err := i.scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	lastCommitToReturn := i.currentCommit
+	i.currentCommit = nil
+
+	return lastCommitToReturn, nil
 }
 
 // Next moves the iterator and returns the next *Commit (or error)
-// If the returned *Commit and err are nil, then iteration is complete.
+// If the returned err is io.EOF then there are no more commits to iterate over
 func (i *commitIterator) Next() (*Commit, error) {
 	if commit, err := i.readUntilCompleteCommit(); err != nil {
-		if errors.Is(err, io.EOF) {
-			i.currentCommit = nil
-			return commit, nil
-		}
-		return nil, err
+		return nil, err // there is an error reading the next commit
+	} else if commit != nil {
+		return commit, nil // there is a commit to return, with no error
 	} else {
-		return commit, nil
+		return nil, io.EOF // there is no commit to return, and no error (end of iteration)
 	}
 }
 

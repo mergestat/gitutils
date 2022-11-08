@@ -47,7 +47,7 @@ type Result []*Blame
 func parseLinePorcelain(reader io.Reader, o *execOptions) (Result, error) {
 	scanner := bufio.NewScanner(reader)
 
-	if o.ScannerBuffer != nil && o.ScannerBufferMax > 0 {
+	if o.ScannerBuffer != nil {
 		scanner.Buffer(o.ScannerBuffer, o.ScannerBufferMax)
 	}
 

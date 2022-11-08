@@ -1,6 +1,7 @@
 package blame_test
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -34,7 +35,8 @@ func init() {
 }
 
 func TestBlameOutput(t *testing.T) {
-	res, err := blame.Exec(context.Background(), repoPath, filePath)
+	adjustedBufferSize := bufio.MaxScanTokenSize * 5
+	res, err := blame.Exec(context.Background(), repoPath, filePath, blame.WithScannerBuffer(make([]byte, adjustedBufferSize), adjustedBufferSize))
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			t.Log(string(exitErr.Stderr))

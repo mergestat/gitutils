@@ -44,8 +44,13 @@ func (event *Event) String() string {
 // Result is a mapping of line numbers to blames for a given file
 type Result []*Blame
 
-func parseLinePorcelain(reader io.Reader) (Result, error) {
+func parseLinePorcelain(reader io.Reader, o *execOptions) (Result, error) {
 	scanner := bufio.NewScanner(reader)
+
+	if o.ScannerBuffer != nil {
+		scanner.Buffer(o.ScannerBuffer, o.ScannerBufferMax)
+	}
+
 	res := make(Result, 0)
 
 	const (
@@ -168,12 +173,23 @@ func parseLinePorcelain(reader io.Reader) (Result, error) {
 type Option func(o *execOptions)
 
 type execOptions struct {
-	Revision string
+	Revision         string
+	ScannerBuffer    []byte
+	ScannerBufferMax int
 }
 
 func WithRevision(revision string) Option {
 	return func(o *execOptions) {
 		o.Revision = revision
+	}
+}
+
+// WithScannerBuffer sets the buffer and max buffer size for the scanner
+// used when reading the output of the git blame command.
+func WithScannerBuffer(buf []byte, max int) Option {
+	return func(o *execOptions) {
+		o.ScannerBuffer = buf
+		o.ScannerBufferMax = max
 	}
 }
 
@@ -205,7 +221,7 @@ func Exec(ctx context.Context, repoPath, filePath string, options ...Option) (Re
 		return nil, err
 	}
 
-	res, err := parseLinePorcelain(stdout)
+	res, err := parseLinePorcelain(stdout, o)
 	if err != nil {
 		return nil, err
 	}

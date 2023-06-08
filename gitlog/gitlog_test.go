@@ -150,3 +150,28 @@ func TestLogOutputWithStats(t *testing.T) {
 		t.Fatal("mismatch")
 	}
 }
+
+func TestLogOutputWithMaxCount(t *testing.T) {
+	wantCount := 7
+
+	iter, err := Exec(context.Background(), repoPath, WithMaxCount(wantCount))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var count int
+	for {
+		_, err := iter.Next()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			t.Fatal(err)
+		}
+		count++
+	}
+
+	if count != wantCount {
+		t.Fatalf("mismatch in commit counts, got: %d want: %d", count, wantCount)
+	}
+}

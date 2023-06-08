@@ -83,6 +83,7 @@ type execOptions struct {
 	FirstParent  bool
 	M            bool
 	Stats        bool
+	MaxCount     int
 }
 
 type CommitOrder string
@@ -135,6 +136,12 @@ func WithM(m bool) Option {
 func WithStats(stats bool) Option {
 	return func(o *execOptions) {
 		o.Stats = stats
+	}
+}
+
+func WithMaxCount(n int) Option {
+	return func(o *execOptions) {
+		o.MaxCount = n
 	}
 }
 
@@ -286,6 +293,10 @@ func Exec(ctx context.Context, repoPath string, options ...Option) (*commitItera
 
 	if o.M {
 		args = append(args, "-m")
+	}
+
+	if o.MaxCount > 0 {
+		args = append(args, fmt.Sprintf("--max-count=%d", o.MaxCount))
 	}
 
 	if o.FileFilter != "" {

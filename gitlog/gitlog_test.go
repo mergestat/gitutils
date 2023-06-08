@@ -151,7 +151,7 @@ func TestLogOutputWithStats(t *testing.T) {
 	}
 }
 
-func TestLogOutputMaxCount(t *testing.T) {
+func TestLogOutputWithMaxCount(t *testing.T) {
 	wantCount := 7
 
 	iter, err := Exec(context.Background(), repoPath, WithMaxCount(wantCount))
